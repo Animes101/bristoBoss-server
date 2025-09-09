@@ -33,7 +33,16 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    
+    const menuCollection= client.db("BristoDB").collection('menu')
+
+    app.get('/menu', async (req,res)=>{
+        const result=await menuCollection.find().toArray()
+         
+
+        if(result){
+            res.status(200).json({data:result})
+        }
+    })
 
 
     // Send a ping to confirm a successful connection
