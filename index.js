@@ -1,23 +1,18 @@
-const express= require('express')
-const app= express()
-const port= parseInt(process.env.PORT) || 5000;
-const cors=require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
-require('dotenv').config();
+const express = require("express");
+const app = express();
+const port = parseInt(process.env.PORT) || 5000;
+const cors = require("cors");
+const { MongoClient, ServerApiVersion } = require("mongodb");
+require("dotenv").config();
 
+app.use(express.json());
+app.use(cors());
 
-app.use(express.json())
-app.use(cors())
-
-
-app.get('/' , (req,res)=> {
-
-    res.send('server is running')
-})
-
+app.get("/", (req, res) => {
+  res.send("server is running");
+});
 
 const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.26qzwj8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -25,7 +20,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -33,21 +28,21 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
-    const menuCollection= client.db("BristoDB").collection('menu')
+    const menuCollection = client.db("BristoDB").collection("menu");
 
-    app.get('/menu', async (req,res)=>{
-        const result=await menuCollection.find().toArray()
-         
+    app.get("/menu", async (req, res) => {
+      const result = await menuCollection.find().toArray();
 
-        if(result){
-            res.status(200).json({data:result})
-        }
-    })
-
+      if (result) {
+        res.status(200).json({ data: result });
+      }
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -55,24 +50,6 @@ async function run() {
 }
 run().catch(console.dir);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`)
-})
+  console.log(`Server is running on http://localhost:${port}`);
+});
