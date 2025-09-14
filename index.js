@@ -38,6 +38,25 @@ async function run() {
       }
     });
 
+    //Cart  related Apis
+    const cartCollection = client.db("BristoDB").collection("carts");
+
+    app.post("/carts", async (req, res) => {
+      const cartItem = req.body;
+
+      const result = await cartCollection.insertOne(cartItem);
+      res.status(201).json({ data: result });
+    });
+    
+     app.get("/carts", async (req, res) => {
+
+      const result =await cartCollection.find().toArray();
+      res.status(200).json(result)
+
+
+      
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
