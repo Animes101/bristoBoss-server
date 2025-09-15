@@ -57,7 +57,7 @@ async function run() {
       
     });
 
-    // Send a ping to confirm a successful connection
+    // Send a ping to confirm a successful connection database
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
@@ -68,6 +68,7 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
