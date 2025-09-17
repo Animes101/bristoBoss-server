@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const port = parseInt(process.env.PORT) || 5000;
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
@@ -28,6 +29,30 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+
+
+     // auth related apis
+    
+      app.post('/jwt', (req, res) => {
+      const { email } = req.body;  // client থেকে আসছে {email: "..."}
+
+      if (!email) {
+        return res.status(400).json({ message: "Email required" });
+      }
+
+      const token = jwt.sign(
+        { email },  // payload হিসেবে email দিচ্ছি
+        process.env.SECRITE_TOKEN,
+        { expiresIn: '1h' }
+      );
+
+
+      res.status(200).json({ token });
+
+    });
+
+
+
     const menuCollection = client.db("BristoDB").collection("menu");
 
     app.get("/menu", async (req, res) => {
@@ -37,6 +62,7 @@ async function run() {
         res.status(200).json({ data: result });
       }
     });
+
 
     //Cart  related Apis
     const cartCollection = client.db("BristoDB").collection("carts");
@@ -49,8 +75,10 @@ async function run() {
     });
 
      app.get("/carts", async (req, res) => {
-       const email = req.query.email;
 
+      console.log(req.headers.authorization)
+
+         const email = req.query.email;
       const result =await cartCollection.find({ email }).toArray();
       res.status(200).json(result);
 
@@ -59,6 +87,7 @@ async function run() {
     });
 
      app.delete("/carts/:id", async (req, res) => {
+
 
        const id = req.params.id;
 
@@ -75,7 +104,7 @@ async function run() {
     app.post('/users', async(req,res)=>{
       const user = req.body;
     
-      const exisets =usersCollection.findOne({email: user.email})
+      const exisets = await usersCollection.findOne({email: user.email})
       if(!exisets){
         const result = await usersCollection.insertOne(user);
       res.status(201).json({ data: result });
@@ -102,8 +131,10 @@ async function run() {
       
        const id = req.params.id;
        const filter={_id : new ObjectId(id)}
-  const update = { 
-  $set: { role: 'admin' } 
+          const update = { 
+          $set: { role: 'admin' } 
+
+
 }
 
 
