@@ -29,6 +29,31 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+    // verify token midilwere
+
+    const verifyToken=(req,res,next)=>{
+
+      console.log(req.headers.Authorization)
+
+      if(!req.headers.Authorization){
+
+        return res.status(401).json({message:'your ar not velid user'});
+      }
+
+      const token=req.headers.Authorization.split(' ')[1];
+
+      // verify a token symmetric
+          jwt.verify(token, process.env.SECRITE_TOKEN, function(err, decoded) {
+              if(err){
+                return res.status(401).json({message:'forbidden access'})
+              }
+              req.decoded=decoded;
+              next()
+          });
+
+
+    }
+
 
 
      // auth related apis
@@ -60,6 +85,7 @@ async function run() {
 
       if (result) {
         res.status(200).json({ data: result });
+
       }
     });
 
@@ -74,9 +100,7 @@ async function run() {
       res.status(201).json({ data: result });
     });
 
-     app.get("/carts", async (req, res) => {
-
-      console.log(req.headers.authorization)
+     app.get("/carts",verifyToken, async (req, res) => {
 
          const email = req.query.email;
       const result =await cartCollection.find({ email }).toArray();
