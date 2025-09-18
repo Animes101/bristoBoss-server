@@ -31,28 +31,26 @@ async function run() {
 
     // verify token midilwere
 
-    const verifyToken=(req,res,next)=>{
+      const verifyToken = async (req, res, next) => {
 
-      console.log(req.headers.Authorization)
+        const authHeader = await req.headers.authorization;
 
-      if(!req.headers.Authorization){
+        console.log(authHeader)
 
-        return res.status(401).json({message:'your ar not velid user'});
-      }
+        if (!authHeader) {
+          return res.status(401).json({ message: "Unauthorized: No token provided" });
+        }
 
-      const token=req.headers.Authorization.split(' ')[1];
+        const token = authHeader.split(" ")[1];
 
-      // verify a token symmetric
-          jwt.verify(token, process.env.SECRITE_TOKEN, function(err, decoded) {
-              if(err){
-                return res.status(401).json({message:'forbidden access'})
-              }
-              req.decoded=decoded;
-              next()
-          });
-
-
-    }
+          jwt.verify(token, process.env.SECRITE_TOKEN, (err, decoded) => {
+          if (err) {
+            return res.status(403).json({ message: "Forbidden: Invalid token" });
+          }
+          req.decoded = decoded;
+          next();
+        });
+      };
 
 
 
@@ -100,7 +98,7 @@ async function run() {
       res.status(201).json({ data: result });
     });
 
-     app.get("/carts",verifyToken, async (req, res) => {
+     app.get("/carts", verifyToken, async (req, res) => {
 
          const email = req.query.email;
       const result =await cartCollection.find({ email }).toArray();
