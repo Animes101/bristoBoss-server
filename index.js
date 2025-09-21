@@ -60,7 +60,24 @@ async function run() {
 
       //verify admin 
 
-      const isAdmin =(req, res, next)=>{
+      const verifyAdmin =async(req, res, next)=>{
+
+        const email=req.decode.email;
+        const query={email:email};
+
+        const user=await usersCollection.findOne(query);
+
+        const admin=user?.role == 'admin';
+
+        if(!admin){
+
+
+          return res.status(401).json({message:'un authorizes'})
+
+        }
+
+
+        next()
 
       }
 
@@ -122,8 +139,6 @@ async function run() {
 
      app.delete("/carts/:id", verifyToken, async (req, res) => {
 
-
-
        const id = req.params.id;
 
       const result = await cartCollection.deleteOne({ _id: new ObjectId(id)});
@@ -138,7 +153,8 @@ async function run() {
 
     app.get('/users/admin/:email',async (req, res)=>{
 
-      const email=req.params.email;
+
+       const email=req.params.email;
 
       if(!email){
         return res.status(403).json({message:'un authorizes'})
