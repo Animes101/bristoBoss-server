@@ -3,7 +3,7 @@ const app = express();
 const port = parseInt(process.env.PORT) || 5000;
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId, Admin } = require("mongodb");
 require("dotenv").config();
 
 app.use(express.json());
@@ -31,26 +31,39 @@ async function run() {
 
     // verify token midilwere
 
-      const verifyToken = async (req, res, next) => {
+      let verifyToken = (req, res, next) => {
 
-        const authHeader = await req.headers.authorization;
+        const authHeader =  req.headers.authorization;
 
-        console.log(authHeader)
-
-        if (!authHeader) {
-          return res.status(401).json({ message: "Unauthorized: No token provided" });
+        if(!authHeader){
+          return res.status(401).json({message:'unauthorizes'})
         }
 
-        const token = authHeader.split(" ")[1];
+        const token=authHeader.split(' ')[1];
 
-          jwt.verify(token, process.env.SECRITE_TOKEN, (err, decoded) => {
-          if (err) {
-            return res.status(403).json({ message: "Forbidden: Invalid token" });
+        if(!token){
+          return res.status(401).json({message:'unauthorizes'})
+        }
+
+        jwt.verify(token, process.env.SECRITE_TOKEN, (errr, decode)=>{
+
+          if(errr){
+             return res.status(401).json({message:'forbiden access'})
+
           }
-          req.decoded = decoded;
-          next();
-        });
+
+          req.decode = decode
+          next()
+        })
+
       };
+
+      //verify admin 
+
+      const isAdmin =(req, res, next)=>{
+
+      }
+
 
 
 
@@ -98,17 +111,17 @@ async function run() {
       res.status(201).json({ data: result });
     });
 
-     app.get("/carts", verifyToken, async (req, res) => {
+     app.get("/carts", verifyToken,  async (req, res) => {
 
          const email = req.query.email;
       const result =await cartCollection.find({ email }).toArray();
       res.status(200).json(result);
 
-
       
     });
 
-     app.delete("/carts/:id", async (req, res) => {
+     app.delete("/carts/:id", verifyToken, async (req, res) => {
+
 
 
        const id = req.params.id;
@@ -122,6 +135,29 @@ async function run() {
 
     // users related apis
     const usersCollection = client.db("BristoDB").collection("users");
+
+    app.get('/users/admin/:email',async (req, res)=>{
+
+      const email=req.params.email;
+
+      if(!email){
+        return res.status(403).json({message:'un authorizes'})
+      }
+
+      const query={email:email}
+
+      const user=await usersCollection.findOne(query);
+
+      let isAdmin=false;
+
+      if(user){
+        isAdmin=user?.role == 'admin';
+      }
+
+      res.status(200).json(isAdmin)
+
+
+    })
 
     app.post('/users', async(req,res)=>{
       const user = req.body;
