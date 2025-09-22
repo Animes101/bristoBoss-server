@@ -121,9 +121,18 @@ async function run() {
       }
     });
 
+      app.delete("/menu", async (req, res) => {
+      const result = await menuCollection.deleteMany({});
+
+      if (result) {
+        res.status(200).json({ data: result });
+
+      }
+    });
+
     app.post("/menu", async (req, res) => {
 
-     const item=req.body
+             const item=req.body
 
         const result= await menuCollection.insertOne(item)
 
@@ -170,7 +179,7 @@ async function run() {
     // users related apis
     const usersCollection = client.db("BristoDB").collection("users");
 
-    app.get('/users/admin/:email', verifyToken, verifyAdmin, async (req, res)=>{
+    app.get('/users/admin/:email', async (req, res)=>{
 
 
        const email=req.params.email;
@@ -206,13 +215,13 @@ async function run() {
       }
     }),
 
-    app.get('/users', verifyToken, verifyAdmin, async(req,res)=>{
+    app.get('/users', verifyToken,verifyAdmin, async(req,res)=>{
       
       const result=await usersCollection.find().toArray();
       res.status(200).json(result);
     })
 
-     app.delete('/users/:id', async(req,res)=>{
+     app.delete('/users/:id', verifyToken, verifyAdmin, async(req,res)=>{
       
        const id = req.params.id;
 
@@ -220,7 +229,7 @@ async function run() {
       res.status(200).json(result);
     })
 
-     app.patch('/users/admin/:id', async(req,res)=>{
+     app.patch('/users/admin/:id', verifyToken, verifyAdmin, async(req,res)=>{
       
        const id = req.params.id;
        const filter={_id : new ObjectId(id)}
