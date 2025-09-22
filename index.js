@@ -13,6 +13,8 @@ app.get("/", (req, res) => {
   res.send("server is running");
 });
 
+
+
 const uri = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0.26qzwj8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -106,6 +108,8 @@ async function run() {
 
 
 
+
+    //menu related api
     const menuCollection = client.db("BristoDB").collection("menu");
 
     app.get("/menu", async (req, res) => {
@@ -116,6 +120,21 @@ async function run() {
 
       }
     });
+
+    app.post("/menu", async (req, res) => {
+
+     const item=req.body
+
+        const result= await menuCollection.insertOne(item)
+
+        if(result.insertedId){
+          res.status(200).json({message:'success', data:result})
+        }
+  
+
+     
+    });
+
 
 
     //Cart  related Apis
@@ -151,7 +170,7 @@ async function run() {
     // users related apis
     const usersCollection = client.db("BristoDB").collection("users");
 
-    app.get('/users/admin/:email',async (req, res)=>{
+    app.get('/users/admin/:email', verifyToken, verifyAdmin, async (req, res)=>{
 
 
        const email=req.params.email;
@@ -187,7 +206,7 @@ async function run() {
       }
     }),
 
-    app.get('/users', async(req,res)=>{
+    app.get('/users', verifyToken, verifyAdmin, async(req,res)=>{
       
       const result=await usersCollection.find().toArray();
       res.status(200).json(result);
