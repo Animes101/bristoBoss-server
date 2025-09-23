@@ -121,28 +121,49 @@ async function run() {
       }
     });
 
-      app.delete("/menu", async (req, res) => {
-      const result = await menuCollection.deleteMany({});
+      app.delete("/menu/:id", async (req, res) => {
+
+        const id=req.params.id
+
+        const query={_id: new ObjectId(id)}
+
+      const result = await menuCollection.deleteOne(query);
 
       if (result) {
+
         res.status(200).json({ data: result });
 
       }
     });
 
-    app.post("/menu", async (req, res) => {
+app.patch("/menu/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const item = req.body;
 
-             const item=req.body
+    const query = { _id: new ObjectId(id) };
+    const updateDoc = {
+      $set: {
+        name: item.name,
+        recipe: item.recipe,
+        image: item.image, // ✅ সরাসরি image
+        category: item.category.toLowerCase(),
+        price: item.price,
+      }
+    };
 
-        const result= await menuCollection.insertOne(item)
+    const result = await menuCollection.updateOne(query, updateDoc);
 
-        if(result.insertedId){
-          res.status(200).json({message:'success', data:result})
-        }
-  
-
-     
-    });
+    if (result.modifiedCount > 0) {
+      res.status(200).json({ message: "success", data: result });
+    } else {
+      res.status(404).json({ message: "No document updated" });
+    }
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 
 
