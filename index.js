@@ -293,6 +293,16 @@ app.patch("/menu/:id", async (req, res) => {
         }
       });
 
+          const paymentCollection = client.db("BristoDB").collection("payments");
+      app.post('/payments', async(req, res)=>{
+
+        const payment=req.body;
+
+        console.log(payment)
+
+        // const result=await paymentCollection.insertOne(payment);
+      })
+
     // Send a ping to confirm a successful connection database
     await client.db("admin").command({ ping: 1 });
     console.log(
