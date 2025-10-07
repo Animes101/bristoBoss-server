@@ -268,8 +268,6 @@ app.patch("/menu/:id", async (req, res) => {
 
     //payment related apis
     const payment_key=process.env.SECRITE_API_KEY;
-
-
     const stripe = new Stripe(payment_key);
 
       app.post("/create-payment-intent", async (req, res) => {
@@ -298,9 +296,29 @@ app.patch("/menu/:id", async (req, res) => {
 
         const payment=req.body;
 
-        console.log(payment)
+        const result=await paymentCollection.insertOne(payment);
+
+        const query={_id: {$in: payment.cartItemId.map(_id=> new ObjectId(_id))}}
+        const deleteResult=await cartCollection.deleteMany(query);
+         res.status(200).json({data: result, deleteResult})
 
         // const result=await paymentCollection.insertOne(payment);
+      });
+
+      app.get('/payments/:email', verifyToken , async(req, res)=>{
+
+        const email=req.params.email;
+
+        if(email !== req.decode.email){
+          return res.status(403).json({message:'forbiden access'})
+        }
+
+        const query={email: email}
+
+        const result=await paymentCollection.find(query).toArray();
+        res.status(200).json(result);
+
+
       })
 
     // Send a ping to confirm a successful connection database
@@ -319,4 +337,4 @@ run().catch(console.dir);
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-});
+}); 
