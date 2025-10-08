@@ -321,6 +321,21 @@ app.patch("/menu/:id", async (req, res) => {
 
       })
 
+      //analatices 
+
+      app.get('/admin-stats', async (req,res)=>{
+
+        const totalUsers= await usersCollection.estimatedDocumentCount();
+        const menuItems=await menuCollection.estimatedDocumentCount();
+        const orders=await paymentCollection.estimatedDocumentCount();
+        const payments= await paymentCollection.find().toArray();
+
+        const revenue=payments.reduce((sum, payment)=> sum + payment.amount, 0)
+
+        res.status(200).json({ totalUsers, menuItems, orders, revenue });
+
+      })
+
     // Send a ping to confirm a successful connection database
     await client.db("admin").command({ ping: 1 });
     console.log(
