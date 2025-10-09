@@ -322,7 +322,6 @@ app.patch("/menu/:id", async (req, res) => {
       })
 
       //analatices 
-
       app.get('/admin-stats', async (req,res)=>{
 
         const totalUsers= await usersCollection.estimatedDocumentCount();
@@ -336,6 +335,20 @@ app.patch("/menu/:id", async (req, res) => {
 
       })
 
+      // user analatces
+      app.get('/user-stats', verifyToken, async (req,res)=>{
+
+        const email=req.decode.email;
+        const query={email: email}
+
+        const totalOrders= await paymentCollection.countDocuments(query);
+        const totalSpent= await paymentCollection.aggregate([
+          { $match: query },
+          { $group: { _id: null, total: { $sum: "$amount" } } }
+        ]).toArray();
+
+        res.status(200).json({ totalOrders, totalSpent: totalSpent[0]?.total || 0 });
+      })
     // Send a ping to confirm a successful connection database
     await client.db("admin").command({ ping: 1 });
     console.log(
