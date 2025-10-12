@@ -342,32 +342,24 @@ app.patch("/menu/:id", async (req, res) => {
 
       });
 
-        app.get('/admin-revenue', async (req, res) => {
-
-          const totalRevenue = await paymentCollection.aggregate([
-            {
-              $unwind: '$cartItemId'
-            },
-            {
-        $addFields: {
-          cartItemId: { $toObjectId: '$cartItemId' } // 🔥 cartItemId কে ObjectId বানানো
+         app.get('/admin-revenue', async (req, res) => {
+    const totalRevenue = await paymentCollection.aggregate([
+      { $unwind: '$cartItemId' },
+      {
+        $lookup: {
+          from: 'menu',
+          localField: 'cartItemId', // ObjectId
+          foreignField: '_id',         // menu._id ObjectId
+          as: 'menuItems'
         }
       },
-            {
-              $lookup: {
-                from: 'menu',
-                localField:'cartItemId',
-                foreignField: '_id',
-                as: 'menuItems'
-              }
-            },
-            
+      
+    ]).toArray();
 
-          ]).toArray();
+    res.status(200).json(totalRevenue);
+  
+});
 
-          res.status(200).json(totalRevenue);
-
-      });
 
 
     // Send a ping to confirm a successful connection database
