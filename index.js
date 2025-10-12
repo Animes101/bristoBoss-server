@@ -292,18 +292,24 @@ app.patch("/menu/:id", async (req, res) => {
       });
 
           const paymentCollection = client.db("BristoDB").collection("payments");
-      app.post('/payments', async(req, res)=>{
 
-        const payment=req.body;
+            app.post('/payments', async (req, res) => {
+        try {
+          const payment = req.body;
 
-        const result=await paymentCollection.insertOne(payment);
+          const result = await paymentCollection.insertOne(payment);
 
-        const query={_id: {$in: payment.cartItemId.map(_id=> new ObjectId(_id))}}
-        const deleteResult=await cartCollection.deleteMany(query);
-         res.status(200).json({data: result, deleteResult})
+          // এখন cart থেকে সেগুলো মুছে দাও
+          const deleteQuery = { _id: { $in: payment.cartItemId } };
+          const deleteResult = await cartCollection.deleteMany(deleteQuery);
 
-        // const result=await paymentCollection.insertOne(payment);
+          res.status(200).json({ data: result, deleteResult });
+        } catch (err) {
+          console.error("Payment insert error:", err);
+          res.status(500).json({ message: "Internal Server Error" });
+        }
       });
+
 
       app.get('/payments/:email', verifyToken , async(req, res)=>{
 
@@ -329,26 +335,41 @@ app.patch("/menu/:id", async (req, res) => {
         const orders=await paymentCollection.estimatedDocumentCount();
         const payments= await paymentCollection.find().toArray();
 
+
         const revenue=payments.reduce((sum, payment)=> sum + payment.amount, 0)
 
         res.status(200).json({ totalUsers, menuItems, orders, revenue });
 
-      })
+      });
 
-      // user analatces
-      app.get('/user-stats', verifyToken, async (req,res)=>{
+        app.get('/admin-revenue', async (req, res) => {
 
-        const email=req.decode.email;
-        const query={email: email}
+          const totalRevenue = await paymentCollection.aggregate([
+            {
+              $unwind: '$cartItemId'
+            },
+            {
+        $addFields: {
+          cartItemId: { $toObjectId: '$cartItemId' } // 🔥 cartItemId কে ObjectId বানানো
+        }
+      },
+            {
+              $lookup: {
+                from: 'menu',
+                localField:'cartItemId',
+                foreignField: '_id',
+                as: 'menuItems'
+              }
+            },
+            
 
-        const totalOrders= await paymentCollection.countDocuments(query);
-        const totalSpent= await paymentCollection.aggregate([
-          { $match: query },
-          { $group: { _id: null, total: { $sum: "$amount" } } }
-        ]).toArray();
+          ]).toArray();
 
-        res.status(200).json({ totalOrders, totalSpent: totalSpent[0]?.total || 0 });
-      })
+          res.status(200).json(totalRevenue);
+
+      });
+
+
     // Send a ping to confirm a successful connection database
     await client.db("admin").command({ ping: 1 });
     console.log(
