@@ -9,12 +9,17 @@ require("dotenv").config();
 
 app.use(express.json());
 
-app.use(
-  cors({
-    origin: ['http://localhost:5173', 'https://brist-boss.surge.sh'],
-    credentials: true
-  })
-);
+// ✅ সব origin allow (development + surge)
+app.use(cors({
+  origin: true,       // সব domain allowed
+  methods: ["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
+
+// Preflight request handle করা
+app.options("*", cors());
+
 
 app.get("/", (req, res) => {
   res.send("server is running");
