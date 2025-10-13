@@ -20,6 +20,15 @@ app.use(cors({
 // Preflight request handle করা
 app.options("*", cors());
 
+app.use((req, res, next) => {
+    res.set({
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "'Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token'",
+    });
+
+    next();
+});
 
 app.get("/", (req, res) => {
   res.send("server is running");
