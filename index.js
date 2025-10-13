@@ -8,7 +8,13 @@ const { MongoClient, ServerApiVersion, ObjectId, Admin } = require("mongodb");
 require("dotenv").config();
 
 app.use(express.json());
-app.use(cors());
+
+app.use(
+  cors({
+    origin: ['http://localhost:5173', 'https://brist-boss.surge.sh'],
+    credentials: true
+  })
+);
 
 app.get("/", (req, res) => {
   res.send("server is running");
@@ -30,7 +36,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     // verify token midilwere
 
@@ -335,6 +341,8 @@ app.patch("/menu/:id", async (req, res) => {
         const orders=await paymentCollection.estimatedDocumentCount();
         const payments= await paymentCollection.find().toArray();
 
+        console.log(orders)
+
 
         const revenue=payments.reduce((sum, payment)=> sum + payment.amount, 0)
 
@@ -342,31 +350,13 @@ app.patch("/menu/:id", async (req, res) => {
 
       });
 
-         app.get('/admin-revenue', async (req, res) => {
-    const totalRevenue = await paymentCollection.aggregate([
-      { $unwind: '$cartItemId' },
-      {
-        $lookup: {
-          from: 'menu',
-          localField: 'cartItemId', // ObjectId
-          foreignField: '_id',         // menu._id ObjectId
-          as: 'menuItems'
-        }
-      },
-      
-    ]).toArray();
-
-    res.status(200).json(totalRevenue);
-  
-});
-
-
+   
 
     // Send a ping to confirm a successful connection database
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -376,6 +366,10 @@ app.patch("/menu/:id", async (req, res) => {
 run().catch(console.dir);
 
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-}); 
+// app.listen(port, () => {
+//   console.log(`Server is running on http://localhost:${port}`);
+// }); 
+
+
+
+module.exports=app
