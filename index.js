@@ -177,7 +177,7 @@ async function run() {
             }
 
             // একটি অবজেক্ট আকারে পাঠান, যা ফ্রন্টএন্ডে রিসিভ করা সহজ
-            res.status(200).json({ admin: isAdmin }); 
+            res.send(isAdmin); 
         });
 
         app.post('/users', async (req, res) => {
